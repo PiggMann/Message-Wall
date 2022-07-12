@@ -1,0 +1,134 @@
+.container {
+  width: 450px;
+  margin: 20px auto;
+}
+.container p {
+  margin: 0;
+}
+.container .post .content {
+  color: peru;
+  margin-bottom: 20px;
+}
+.container .post .btn {
+  color: white;
+  font-size: 12px;
+
+  display: flex;
+  justify-content: space-between;
+}
+.post {
+  box-sizing: border-box;
+  background-color: papayawhip;
+  width: 450px;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+.container .post .btn {
+  color: #fff;
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.container .post .btn .buttons {
+  display: flex;
+  gap: 10px;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.container .post:hover .btn .buttons {
+  opacity: 1;
+}
+.container .post .btn .buttons .button {
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 9999999px;
+}
+.container .post .btn .buttons .edit {
+  background-color: rgb(17, 175, 175);
+}
+.container .post .btn .buttons .delete {
+  background-color: rgb(255, 108, 54);
+}
+.container .btn .time {
+  color: #aaa;
+}
+.publish {
+  width: 60px;
+  height: 60px;
+  background-color: rgb(17, 175, 175);
+  border-radius: 50%;
+  color: #fff;
+  text-align: center;
+  line-height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  cursor: pointer;
+}
+.container .post .input-content {
+  width: 390px;
+  height: 100px;
+  margin-bottom: 20px;
+  outline: none;
+  border: none;
+  background-color: rgba(237, 237, 237, 0.834);
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.container .input-dialog .btn .buttons {
+  opacity: 1;
+}
+
+.container .btn .buttons .cancel {
+  background-color: gray;
+}
+
+.container .btn .buttons .confirm {
+  background-color: rgb(17, 175, 175);
+}
+
+.container .input-dialog .btn {
+  justify-content: flex-end;
+}
+
+.container .title {
+  color: rgb(255, 144, 104);
+}
+
+.container .empty {
+  color: #aaa;
+  font-size: 20px;
+
+  margin: 80px 0;
+
+  text-align: center;
+}
+.container .box {
+  margin-bottom: 20px;
+  width: 300px;
+  height: 35px;
+  border: 1px solid rgb(255, 144, 104);
+  border-radius: 50px;
+}
+.container .box .search {
+  height: 35px;
+  width: 240px;
+  padding: 0 10px;
+  outline: none;
+  border: none;
+  border-radius: 50px;
+}
+.container .box .img {
+  align-items: center;
+  height: 28px;
+  width: 28px;
+  float: right;
+  padding: 3px 8px 0 0;
+  cursor: pointer;
+}

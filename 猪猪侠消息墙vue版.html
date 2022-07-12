@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>猪猪侠消息墙vue版</title>
+    <link rel="stylesheet" href="./消息墙css.css" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <h1 class="title">猪猪侠的消息墙 ʚ•⚇•ɞ</h1>
+        <div class="box">
+          <input
+            v-model="scout"
+            class="search"
+            type="text"
+            placeholder="搜索"
+          />
+          <img src="./搜索.png" class="img" @click="search()" />
+        </div>
+        <input-dialog
+          v-show="isPublish"
+          @callOff="isPublish = flase"
+          @notarize="notarize"
+        ></input-dialog>
+        <div class="posts"></div>
+        <p v-if="posts.length === 0" class="empty">什么消息都没有喔~</p>
+        <message
+          v-for="post in posts"
+          :key="post.post_id"
+          :content="post.content"
+          :publish-time="post.publish_time"
+          :post-id="post.post_id"
+          @keyup.enter="confirm"
+        ></message>
+      </div>
+      <div @click="showPublish()" class="publish">发布</div>
+    </div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/3.2.33/vue.global.js"></script>
+    <script>
+      const App = {
+        data() {
+          return {
+            // 消息列表
+            posts: [],
+            isPublish: false,
+            content: "",
+            scout: "",
+          };
+        },
+        async mounted() {
+          // 初始化
+          await this.refresh();
+        },
+        methods: {
+          // 初始化
+          async refresh() {
+            const gain = await this.getPost();
+            const data = await gain.json();
+            this.posts = data.results;
+          },
+          // 确认发布
+          async notarize(content) {
+            await this.createPost(content);
+            await this.refresh();
+            this.isPublish = false;
+          },
+          search() {
+            if (this.scout) {
+              const result = this.posts.filter(
+                (item) => item.content.indexOf(this.scout) > -1
+              );
+              this.posts = result;
+            } else {
+              this.refresh();
+            }
+          },
+          delete() {
+            deletePosts(postId);
+          },
+          // 显示发布框
+          showPublish() {
+            this.isPublish = !this.isPublish;
+          },
+          // 获取帖子列表
+          getPost() {
+            return fetch("https://3yya.com/u/2c66e040a48df8d3/rest/app/posts");
+          },
+          // 发布帖子
+          createPost(content) {
+            let data = {
+              content: content,
+            };
+            return fetch("https://3yya.com/u/2c66e040a48df8d3/rest/app/posts", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            });
+          },
+        },
+      };
+      const app = Vue.createApp(App);
+      app.component("input-dialog", {
+        template: `<div class="post input-dialog">
+          <textarea v-model="content" class="input-content" placeholder="请输入"></textarea>
+          <div class="btn">
+            <div class="buttons">
+              <div class="button confirm" @click="confirm()">确认</div>
+              <div class="button cancel" @click="cancel()">取消</div>
+            </div>
+          </div>
+        </div>`,
+        data() {
+          return {
+            content: "",
+          };
+        },
+        methods: {
+          cancel() {
+            this.$emit("callOff");
+          },
+          confirm() {
+            this.$emit("notarize", this.content);
+          },
+        },
+      });
+
+      app.component("message", {
+        props: ["content", "publishTime", "postId"],
+        template: `
+          <div v-if='isExist' class="post">
+            <textarea v-if='isEdit' v-model="selfContent" class="input-content" placeholder="请输入"></textarea>
+            <div v-else class="content">{{selfContent}}</div>
+            <div class="btn">
+              <p class="time">{{formatTime(publishTime)}}</p>
+              <div class="buttons">
+                <div v-if='isEdit' class="button confirm" @click="confirm">确认</div>
+                <div v-else class="button edit" @click='edit'>编辑</div>
+                <div v-if='isEdit' class="button cancel" @click="cancel">取消</div>
+                <div v-else class="button delete" @click='remove'>删除</div>
+              </div>
+            </div>
+          </div>`,
+        data() {
+          return {
+            isExist: true,
+            isEdit: false,
+            selfContent: this.content,
+          };
+        },
+        methods: {
+          formatTime(timestamp) {
+            const time = new Date(timestamp * 1000);
+            return `${time.getFullYear()}-${
+              time.getMonth() + 1
+            }-${time.getDate()} ${time.getHours()}:${time.getMinutes()}`;
+          },
+          async remove() {
+            // 删除消息
+            await this.deletePosts(this.postId);
+            this.isExist = false;
+          },
+          edit() {
+            // 切换到编辑状态
+            this.isEdit = true;
+          },
+          async confirm() {
+            // 确认按钮
+            await this.undatePosts(this.postId, this.selfContent);
+            this.isEdit = false;
+          },
+          async cancel() {
+            // 取消按钮
+            this.isEdit = false;
+
+            // 回复初始值
+            await this.undatePosts(this.postId, this.selfContent);
+          },
+          // PUT  更新帖子
+          undatePosts(postId, content) {
+            let data = {
+              content: content,
+            };
+            return fetch(
+              "https://3yya.com/u/2c66e040a48df8d3/rest/app/posts/" + postId,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+              }
+            );
+          },
+          // 删除帖子
+          deletePosts(postId) {
+            return fetch(
+              "https://3yya.com/u/2c66e040a48df8d3/rest/app/posts/" + postId,
+              {
+                method: "DELETE",
+              }
+            );
+          },
+        },
+      });
+
+      app.mount("#app");
+      // Vue.createApp(App).mount("#app");
+    </script>
+  </body>
+</html>

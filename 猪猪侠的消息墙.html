@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>猪猪侠的消息墙</title>
+    <link rel="stylesheet" href="./消息墙css.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="title">猪猪侠的消息墙 ʚ•⚇•ɞ</h1>
+      <div class="post input-dialog" hidden>
+        <textarea class="input-content" placeholder="请输入"></textarea>
+        <div class="btn">
+          <div class="buttons">
+            <div class="button confirm" onclick="confirm()">确认</div>
+            <div class="button cancel" onclick="cancel()">取消</div>
+          </div>
+        </div>
+      </div>
+      <div class="posts"></div>
+    </div>
+    <div class="publish" onclick="showPublish()">发布</div>
+    <!-- <div class="container"></div> -->
+    <script>
+      // 显示输入框
+      function showPublish() {
+        document.querySelector(".input-dialog").hidden = false;
+
+        // 滚动到顶部
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      // 隐藏输入框
+      // function cancel() {
+      //   document.querySelector(".input-dialog").hidden = true;
+      // }
+
+      // 发布内容
+      async function confirm() {
+        const content = document.querySelector(".input-content").value;
+        await createPost(content);
+        refresh();
+        document.querySelector(".input-content").value = "";
+        document.querySelector(".input-dialog").hidden = true;
+      }
+
+      // 获取帖子列表
+      function getPost() {
+        return fetch("https://3yya.com/u/2c66e040a48df8d3/rest/app/posts");
+      }
+
+      // 发布帖子
+      function createPost(content) {
+        let data = {
+          content: content,
+        };
+
+        return fetch("https://3yya.com/u/2c66e040a48df8d3/rest/app/posts", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+      }
+      // console.log(createPost("11111"));
+
+      // PUT  更新帖子
+      function undatePosts(postId, content) {
+        let data = {
+          content: content,
+        };
+
+        return fetch(
+          "https://3yya.com/u/2c66e040a48df8d3/rest/app/posts/" + postId,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          }
+        );
+      }
+
+      // PUT  删除帖子
+      function deletePosts(postId) {
+        return fetch(
+          "https://3yya.com/u/2c66e040a48df8d3/rest/app/posts/" + postId,
+          {
+            method: "DELETE",
+          }
+        );
+      }
+      // 初始化
+      async function refresh() {
+        document.querySelector(".container .posts").innerHTML = "";
+        const response = await getPost();
+        const result = await response.json();
+        // console.log(result);
+        for (let post of result.results) {
+          // console.log(post);
+          const postElement = document.createElement("div");
+          postElement.classList.add("post");
+
+          const content = document.createElement("p");
+          content.classList.add("content");
+          content.textContent = post.content;
+          postElement.append(content);
+
+          const btn = document.createElement("div");
+          btn.classList.add("btn");
+          postElement.append(btn);
+
+          const time = document.createElement("p");
+          time.classList.add("time");
+          time.textContent = formatTime(post.publish_time);
+
+          btn.append(time);
+
+          const buttons = document.createElement("div");
+          buttons.classList.add("buttons");
+          btn.append(buttons);
+
+          const edit = document.createElement("div");
+          edit.classList.add("button");
+          edit.classList.add("edit");
+          edit.textContent = "编辑";
+
+          // 编辑操作
+          edit.onclick = function () {
+            const input = document.createElement("textarea");
+            input.classList.add("input-content");
+            input.value = content.textContent;
+            content.replaceWith(input);
+            input.onkeydown = async function (ev) {
+              if (ev.keyCode === 13) {
+                await undatePosts(post.post_id, input.value);
+                content.textContent = input.value;
+                input.replaceWith(content);
+                confirm.replaceWith(edit);
+                console.log(ev);
+              }
+            };
+
+            const confirm = document.createElement("div");
+            confirm.classList.add("button");
+            confirm.classList.add("edit");
+            confirm.textContent = "确认";
+
+            confirm.onclick = async function () {
+              await undatePosts(post.post_id, input.value);
+
+              content.textContent = input.value;
+              input.replaceWith(content);
+              confirm.replaceWith(edit);
+            };
+            const cancel = document.createElement("div");
+            cancel.classList.add("button");
+            cancel.classList.add("cancel");
+            cancel.textContent = "取消";
+            cancel.onclick = function () {
+              document.querySelector(".input-dialog").hidden = true;
+            };
+            edit.replaceWith(confirm);
+            deleteElement.replaceWith(cancel);
+          };
+
+          buttons.append(edit);
+
+          const deleteElement = document.createElement("div");
+          deleteElement.classList.add("button");
+          deleteElement.classList.add("delete");
+          deleteElement.textContent = "删除";
+
+          // 删除操作
+          deleteElement.onclick = async function () {
+            await deletePosts(post.post_id);
+            postElement.remove();
+          };
+
+          buttons.append(deleteElement);
+
+          document.querySelector(".container .posts").append(postElement);
+        }
+      }
+
+      function formatTime(timestamp) {
+        const time = new Date(timestamp * 1000);
+        return `${time.getFullYear()}-${
+          time.getMonth() + 1
+        }-${time.getDate()} ${time.getHours()}:${time.getMinutes()}`;
+      }
+      refresh();
+    </script>
+  </body>
+</html>
